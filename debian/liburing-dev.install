@@ -1,0 +1,4 @@
+usr/include
+usr/lib/*/liburing.so
+usr/lib/*/liburing.a
+usr/lib/*/pkgconfig

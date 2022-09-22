@@ -1,0 +1,36 @@
+---
+ test/sq-poll-dup.c   |    7 ++++++-
+ test/sq-poll-share.c |    6 +++++-
+ 2 files changed, 11 insertions(+), 2 deletions(-)
+
+--- a/test/sq-poll-dup.c
++++ b/test/sq-poll-dup.c
+@@ -105,7 +105,12 @@ static int test(int fd, int do_dup_and_c
+ 		}
+ 		ret = io_uring_queue_init_params(BUFFERS, &rings[i], &p);
+ 		if (ret) {
+-			fprintf(stderr, "queue_init: %d/%d\n", ret, i);
++			if (errno == EPERM) {
++				fprintf(stderr, "skipping, not root\n");
++				return 0;
++			}
++			fprintf(stderr, "queue_init: %d/%d: %s\n", ret, i,
++				strerror(errno));
+ 			goto err;
+ 		}
+ 		/* no sharing for non-fixed either */
+--- a/test/sq-poll-share.c
++++ b/test/sq-poll-share.c
+@@ -106,7 +106,11 @@ int main(int argc, char *argv[])
+ 		}
+ 		ret = io_uring_queue_init_params(BUFFERS, &rings[i], &p);
+ 		if (ret) {
+-			fprintf(stderr, "queue_init: %d/%d\n", ret, i);
++			if (errno == EPERM) {
++				fprintf(stderr, "skipping, not root\n");
++				return 0;
++			}
++			fprintf(stderr, "queue_init: %d/%d: %s\n", ret, i, strerror(errno));
+ 			goto err;
+ 		}
+ 		/* no sharing for non-fixed either */
