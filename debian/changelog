@@ -1,14 +1,129 @@
-liburing (2.1.1-1+dde) UNRELEASED; urgency=medium
+liburing (2.8-1) unstable; urgency=medium
 
-  * update
+  * New upstream release.
+    - Remove patches merged or pulled from upstream:
+      0001-Don-t-set-_GNU_SOURCE-in-pkg-config-cflags.patch
+      0001-Fix-typos.patch
+      0002-Fix-typos.patch
 
- -- Guillem Jover <guillem@debian.org>  Tue, 26 Jul 2022 11:09:52 +0800
+ -- Guillem Jover <guillem@debian.org>  Sat, 26 Oct 2024 23:31:51 +0200
 
-liburing (2.1.1-1+dde) unstable; urgency=medium
+liburing (2.7-2) unstable; urgency=medium
 
-  * Add sunway support.
+  * Do not define _GNU_SOURCE in the .pc file Cflags. Closes: #1080419
 
- -- Miao Changwei <miaochangwei@uniontech.com>  Mon, 16 May 2022 01:08:18 +0800
+ -- Guillem Jover <guillem@debian.org>  Wed, 04 Sep 2024 00:51:39 +0200
+
+liburing (2.7-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Remove patches pulled from upstream:
+      0001-test-skip-test-case-if-underlying-filesystem-doesn-t.patch
+      0002-test-buf-ring-skip-on-older-kernels-that-don-t-suppo.patch
+      0003-man-fix-IORING_REGISTER_RING_FDS-docs.patch
+  * Fix typos in code and manual pages.
+
+ -- Guillem Jover <guillem@debian.org>  Tue, 27 Aug 2024 10:36:30 +0200
+
+liburing (2.6-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Remove 0001-man-io_uring_queue_init.3-Fix-typo.patch, merged upstream.
+    - Add patches from upstream git:
+      0001-test-skip-test-case-if-underlying-filesystem-doesn-t.patch,
+      0002-test-buf-ring-skip-on-older-kernels-that-don-t-suppo.patch
+      0003-man-fix-IORING_REGISTER_RING_FDS-docs.patch
+    - Clean test/core-coredump.t as it is an expected artifact.
+  * Switch from future=+lfs to abi=+lfs build flags feature, and Build-Depends
+    on dpkg-dev >= 1.22.0.
+  * Switch to Standards-Version 4.7.0 (no changes needed).
+
+ -- Guillem Jover <guillem@debian.org>  Sun, 05 May 2024 17:29:50 +0200
+
+liburing (2.5-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Remove 0001-build-Disable-stack-protector-unconditionally.patch,
+      merged upstream.
+    - Remove 0002-build-Fail-the-build-if-we-have-undefined-symbols.patch,
+      ditto.
+  * Switch back to use libc (from nolibc) after the support got restored
+    upstream with the new configure --use-libc option.
+  * Switch autopkgtest dependency from pkg-config to pkgconf.
+  * Wrap fields in debian/tests/control.
+  * Fix a typo in the manual pages.
+
+ -- Guillem Jover <guillem@debian.org>  Fri, 10 Nov 2023 02:30:36 +0100
+
+liburing (2.4-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Remove 0001-man-Fix-typos.patch, merged upstream.
+    - Add new patch to fix stack protection disabling.
+    - Add new patch to fail the build on undefined symbols.
+    - Install new liburing-ffi static and shared libraries.
+    - Install new man pages.
+  * Fix license information for a test file in debian/copyright.
+
+ -- Guillem Jover <guillem@debian.org>  Tue, 13 Jun 2023 02:50:52 +0200
+
+liburing (2.3-3) unstable; urgency=medium
+
+  * Switch to Standards-Version 4.6.2 (no changes needed).
+  * Do not trim debian/changelog.
+  * Update copyright years.
+  * Make globs in debhelper fragment files more specific.
+  * Switch from hardening=+bindnow to hardening=+all.
+  * Update debian/patches metadata.
+
+ -- Guillem Jover <guillem@debian.org>  Wed, 18 Jan 2023 03:15:54 +0100
+
+liburing (2.3-2) unstable; urgency=medium
+
+  * Artificially bump symbol versions to 2.3 for functions involved in a
+    forward compatibility ABI break, for objects built against the new
+    library and run-time linked against the old one, until upstream decides
+    how to fix/improve this. Closes: #1023654
+
+ -- Guillem Jover <guillem@debian.org>  Mon, 14 Nov 2022 00:15:08 +0100
+
+liburing (2.3-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Remove 0001-Fix-typos.patch, merged upstream.
+    - Remove 0002-Fix-typos.patch, ditto.
+    - Remove 0003-man-Add-missing-section-numbers.patch, ditto.
+    - Remove 0004-man-Lowercase-man-page-name-in-title-header.patch, ditto.
+    - Remove tests-skip.patch, no longer needed.
+  * Remove lintian-override false-positive, fixed in lintian.
+  * Add patch fixing typos in man pages.
+
+ -- Guillem Jover <guillem@debian.org>  Sat, 05 Nov 2022 00:14:14 +0100
+
+liburing (2.2-2) unstable; urgency=medium
+
+  * Pass build flags explicitly to dh_auto_build. This will override the
+    variables set explicitly by upstream.
+  * Add missing License field to test/* stanza in debian/copyright.
+  * Documentation cleanup:
+    - Fix typos in man pages and test cases.
+    - Add missing section numbers to man pages.
+    - Lowercase man page title headers.
+  * Add missing patch metadata.
+  * Enable LFS build options. This should be ABI safe as the shared library
+    does not export symbols with problematic type, the only problematic types
+    are exposed as part of «static inline» functions from the header file.
+
+ -- Guillem Jover <guillem@debian.org>  Thu, 18 Aug 2022 12:04:48 +0200
+
+liburing (2.2-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Remove 0001-test-Use-syscall-wrappers-instead-of-using-syscall-2.patch,
+      included upstream.
+  * Switch to Standards-Version 4.6.1 (no changes needed).
+
+ -- Guillem Jover <guillem@debian.org>  Fri, 01 Jul 2022 12:38:56 +0200
 
 liburing (2.1-2) unstable; urgency=medium
 

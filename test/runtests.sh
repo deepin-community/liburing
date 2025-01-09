@@ -1,13 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 TESTS=("$@")
-RET=0
 TIMEOUT=60
 DMESG_FILTER="cat"
 TEST_DIR=$(dirname "$0")
-FAILED=""
-SKIPPED=""
-TIMED_OUT=""
+FAILED=()
+SKIPPED=()
+TIMED_OUT=()
 TEST_FILES=""
 declare -A TEST_MAP
 
@@ -17,7 +16,7 @@ DO_KMSG="1"
 
 # Include config.local if exists and check TEST_FILES for valid devices
 if [ -f "$TEST_DIR/config.local" ]; then
-	# shellcheck disable=SC1091
+	# shellcheck source=/dev/null disable=SC1091
 	. "$TEST_DIR/config.local"
 	for dev in $TEST_FILES; do
 		if [ ! -e "$dev" ]; then
@@ -94,15 +93,15 @@ run_test()
 	# shellcheck disable=SC2181
 	if [ $? -eq 0 ]; then
 		echo "Test skipped"
-		SKIPPED="$SKIPPED <$test_string>"
+		SKIPPED+=("<$test_string>")
 		return
 	fi
 
 	# Run the test
 	T_START=$(date +%s)
 	timeout -s INT -k $TIMEOUT $TIMEOUT "${test_exec[@]}"
-	T_END=$(date +%s)
 	local status=$?
+	T_END=$(date +%s)
 
 	if [ -e ./core ]; then
 		mv core "core-$test_name"
@@ -111,15 +110,19 @@ run_test()
 	# Check test status
 	if [ "$status" -eq 124 ]; then
 		echo "Test $test_name timed out (may not be a failure)"
-		TIMED_OUT="$TIMED_OUT <$test_string>"
-	elif [ "$status" -ne 0 ]; then
+		TIMED_OUT+=("<$test_string>")
+	elif [ "$status" -eq 77 ]; then
+		echo "Skipped"
+		SKIPPED+=("<$test_string>")
+	elif [[ $test_string != xfail* ]] && [ "$status" -ne 0 ]; then
 		echo "Test $test_name failed with ret $status"
-		FAILED="$FAILED <$test_string>"
-		RET=1
+		FAILED+=("<$test_string>")
+	elif [[ $test_string == xfail* ]] && [ "$status" -ne 1 ]; then
+		echo "Test $test_name expected fail status 1 but returned $status"
+		FAILED+=("<$test_string>")
 	elif ! _check_dmesg "$dmesg_marker" "$test_name"; then
 		echo "Test $test_name failed dmesg check"
-		FAILED="$FAILED <$test_string>"
-		RET=1
+		FAILED+=("<$test_string>")
 	else
 		if [ -f "output/$out_name" ]; then
 			T_PREV=$(cat "output/$out_name")
@@ -139,7 +142,7 @@ run_test()
 # Run all specified tests
 for tst in "${TESTS[@]}"; do
 	if [ ! -d output ]; then
-		mkdir output
+		mkdir -p output
 	fi
 	if [ -z "${TEST_MAP[$tst]}" ]; then
 		run_test "$tst"
@@ -153,17 +156,27 @@ for tst in "${TESTS[@]}"; do
 	fi
 done
 
-if [ -n "$SKIPPED" ]; then
-	echo "Tests skipped: $SKIPPED"
+if [ "$DO_KMSG" -eq "1" ]; then
+	for dmesg_file in *.dmesg; do
+		if [ -f "$dmesg_file" ]; then
+			echo "Found dmesg file $dmesg_file, outputting:"
+			cat "$dmesg_file"
+		fi
+	done
 fi
 
-if [ -n "$TIMED_OUT" ]; then
-	echo "Tests timed out: $TIMED_OUT"
+if [ "${#TIMED_OUT[*]}" -ne 0 ]; then
+	echo "Tests timed out (${#TIMED_OUT[*]}): ${TIMED_OUT[*]}"
 fi
 
-if [ "${RET}" -ne 0 ]; then
-	echo "Tests failed: $FAILED"
-	exit $RET
+KVER=$(uname -rv)
+echo "Test run complete, kernel: $KVER"
+
+if [ "${#FAILED[*]}" -ne 0 ]; then
+	echo "Tests failed (${#FAILED[*]}): ${FAILED[*]}"
+	exit 1
+elif [ "${#SKIPPED[*]}" -ne 0 ] && [ -n "$TEST_GNU_EXITCODE" ]; then
+	exit 77
 else
 	echo "All tests passed"
 	exit 0
