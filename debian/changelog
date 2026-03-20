@@ -1,3 +1,11 @@
+liburing (2.8-1deepin1) unstable; urgency=medium
+
+  * Fix build on UOS kernel 6.6 without linux/blkdev.h.
+    - Add check for header existence before testing BLOCK_URING_CMD_DISCARD
+    - Fixes FTBFS on systems missing linux/blkdev.h header
+
+ -- lichenggang <lichenggang@deepin.org>  Fri, 20 Mar 2026 11:01:12 +0800
+
 liburing (2.8-1) unstable; urgency=medium
 
   * New upstream release.

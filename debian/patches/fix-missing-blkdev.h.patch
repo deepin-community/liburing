@@ -1,0 +1,51 @@
+From: lichenggang <lichenggang@uniontech.com>
+Date: Fri, 20 Mar 2026 10:00:00 +0800
+Subject: [PATCH] Fix build on systems without linux/blkdev.h
+
+Upstream commit 906a4567 added support for io_uring block discard commands
+which requires linux/blkdev.h for BLOCK_URING_CMD_DISCARD definition.
+However, this header is not available in kernel 6.6 (UOS environment).
+
+This patch modifies the configure script to check for the existence of
+linux/blkdev.h before attempting to use it. If the header is not present,
+the build gracefully falls back to defining BLOCK_URING_CMD_DISCARD locally
+in compat.h.
+
+Changes:
+- Add header existence check before testing BLOCK_URING_CMD_DISCARD
+- Prevents configure failure on systems without linux/blkdev.h
+- Maintains compatibility with newer kernels that have the header
+
+Signed-off-by: lichenggang <lichenggang@uniontech.com>
+---
+ configure | 13 ++++++++-----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/configure b/configure
+index 47943064..1fff5bdc 100755
+--- a/configure
++++ b/configure
+@@ -420,15 +420,20 @@ print_config "futex waitv support" "$futexv"
+ ##########################################
+ # Check block discard cmd support
+ discard_cmd="no"
+-cat > $TMPC << EOF
++# Check if linux/blkdev.h exists first
++if echo '#include <linux/blkdev.h>' | $cc -E -x c - >/dev/null 2>&1; then
++  cat > $TMPC << EOF
+ #include <linux/blkdev.h>
+ int main(void)
+ {
+   return BLOCK_URING_CMD_DISCARD;
+ }
+ EOF
+-if compile_prog "" "" "discard command"; then
+-  discard_cmd="yes"
++  if compile_prog "" "" "discard command"; then
++    discard_cmd="yes"
++  fi
+ fi
+ print_config "io_uring discard command support" "$discard_cmd"
+ 
+-- 
+2.40.0
